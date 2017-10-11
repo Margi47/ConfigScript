@@ -9,21 +9,27 @@
         $('h3').eq(index).after(getText(name));
 
         setDefaults(name, values);
-
-        printResults(name);
     })
+
+    createButton();
+    $('#resultButton').click(function(){
+        $.each(headers, function(index, value){
+            var name = headers.eq(index).nextUntil('h3','table').first().find('tbody').first('tr').first('td').find('code').text();
+            printResults(name);
+        });
+    });
 });
 
 function getText(name){
 var text=` 
  <label>Value</label>
- <div id=`+ name +`>
+ <div>
     <input type="radio" name="` + name + `" value="true"/>True
     <input type="radio" name="` + name + `" value="false"/>False
  </div>
 
  <label>Severity</label>
- <div id=`+ name +`-level>
+ <div>
     <input type="radio" name="` + name + `-level" value="none"/>None
     <input type="radio" name="` + name + `-level" value="suggestion"/>Suggestion
     <input type="radio" name="` + name + `-level" value="warning"/>Warning
@@ -31,6 +37,25 @@ var text=`
  </div>
  `
  return text;
+}
+
+function createButton(){
+var button=`
+<div id="resultButton">
+Get Results
+</div>
+`
+
+$('body').first().prepend(button);
+$('#resultButton').css({
+    'position':'fixed', 
+    'top': '0', 
+    'right':'0', 
+    'border':'3px solid red',
+    'font-size':'40px',
+    'background-color':'white',
+    'padding':'5px'
+    });
 }
 
 function setDefaults(name, values){
