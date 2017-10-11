@@ -77,5 +77,12 @@ function setDefaults(name, values){
 function printResults(name){
     var resultValue = $('input[name="' + name +'"]:checked').val();
     var resultLevel = $('input[name="' + name +'-level"]:checked').val();
-    console.log(name + '=' + resultValue +':' + resultLevel);
+
+    var result = name + '=' + resultValue;
+
+    if(resultLevel != undefined){
+        result += ':' + resultLevel;
+    }
+
+    console.log(result);
 }
