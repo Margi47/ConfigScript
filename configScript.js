@@ -77,8 +77,22 @@ function createButton(){
 
 function getResults(){
     var result = "";
+    var previousMainHeader = "";
+    var previousHeader = "";
     var headers = $('h1').eq(1).nextUntil($('h1').eq(5),'h3');
     $.each(headers, function(index, value){
+        var mainHeader = headers.eq(index).prevAll('h1').first().text();
+        if(previousMainHeader != mainHeader){
+            result += '\r\n//' + mainHeader;
+            previousMainHeader = mainHeader;
+        }
+
+        var header = headers.eq(index).prevAll('h2').first().text();
+        if(previousHeader != header){
+            result += '\r\n//' + header + '\r\n';
+            previousHeader = header;
+        }
+
         var name = headers.eq(index).nextUntil('h3','table').first().find('tbody').first('tr').first('td').find('code').text();
                 
         var resultValue = $('input[name="' + name +'"]:checked').val();
