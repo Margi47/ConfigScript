@@ -1,14 +1,19 @@
-﻿$(document).ready(function(){
-    var headers = $('h3').slice(0,28);
+﻿$(document).ready(function(){    
+    var headers = $('h1').eq(1).nextUntil($('h1').eq(5),'h3');
     $.each(headers, function(index, value){
         var firstRow= headers.eq(index).next().find('tbody').first('tr');
-
         var name = firstRow.first('td').find('code').text();
-        var values = firstRow.find('td').eq(2).text().split(':');
+        var defaultValues = firstRow.find('td').eq(2).text().split(':');
 
-        $('h3').eq(index).after(getText(name));
+        var values=[];
+        var secondRows = headers.eq(index).nextUntil('h3','table').eq(1).find('tbody').find('tr');
+        $.each(secondRows, function(index, value){
+            values.push(secondRows.eq(index).find('td').first().text());
+        })
 
-        setDefaults(name, values);
+        headers.eq(index).after(getText(name, values, defaultValues[1]!=undefined));
+
+        setDefaults(name, defaultValues);
     })
 
     createButton();
@@ -20,14 +25,17 @@
     });
 });
 
-function getText(name){
-var text=` 
- <label>Value</label>
- <div>
-    <input type="radio" name="` + name + `" value="true"/>True
-    <input type="radio" name="` + name + `" value="false"/>False
- </div>
+function getText(name, values, hasLevel){
+var options ="";
 
+$.each(values, function(index, value){
+  options += '<input type="radio" name="' + name + '-level" value="' + value.toLowerCase() + '"/>' + value;
+});
+
+console.log(options);
+var text ='<label>Value</label><div>' + options + '</div>';
+
+var levelText =`
  <label>Severity</label>
  <div>
     <input type="radio" name="` + name + `-level" value="none"/>None
@@ -35,7 +43,12 @@ var text=`
     <input type="radio" name="` + name + `-level" value="warning"/>Warning
     <input type="radio" name="` + name + `-level" value="error"/>Error
  </div>
- `
+ `;
+
+ if(hasLevel){
+    text += levelText;
+ }
+
  return text;
 }
 
