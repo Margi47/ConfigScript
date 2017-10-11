@@ -29,8 +29,17 @@
 function getText(name, values, hasLevel){
     var options ="";
     $.each(values, function(index, value){
-        options += '<input type="radio" name="' + name + '" value="' + value.toLowerCase() + '"/>' + value;
+        if(name == "csharp_new_line_before_open_brace" && index == 0){
+            options += '<input type="radio" name="' + name + '" value="select"/>select';
+        }
+        else{
+            options += '<input type="radio" name="' + name + '" value="' + value.toLowerCase() + '"/>' + value;
+        }
     });
+
+    if(name == "csharp_space_between_parentheses"){
+        options += '<input type="radio" name="' + name + '" value="false"/>False';
+    }
 
     var text ='<label>Value</label><div>' + options + '</div>';
     var levelText =`
