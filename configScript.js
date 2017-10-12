@@ -18,6 +18,16 @@
     })
 
     createButton();
+
+    $('input[name="csharp_new_line_before_open_brace"]').change(function(){
+        if ($(this).val() == 'select') {
+            var boxes = addCheckboxOptions($(this).parent().next().next().find('tbody').find('tr').first().find('td').first().text());
+            $(this).parent().append(boxes);
+        }
+        else{
+            $('#selectBoxes').remove();
+        }
+    });
        
     $('#resultButton').click(function(){
         var text= getResults();
@@ -84,6 +94,14 @@ function createButton(){
     });
 }
 
+function addCheckboxOptions(values){
+    var text = "";
+    $.each(values.slice(0, values.indexOf(".")).split(', '), function(index, value) {
+        text += '<input type="checkbox" name="csharp_new_line_before_open_brace-select" value="'+ value +'">'+ value + '<br>';
+    });
+    return '<div id="selectBoxes"><br>' + text + '</div>';    
+}
+
 function getResults(){
     var result = "";
     var previousMainHeader = "";
@@ -103,9 +121,24 @@ function getResults(){
         }
 
         var name = headers.eq(index).nextUntil('h3','table').first().find('tbody').first('tr').first('td').find('code').text();
-                
+          
         var resultValue = $('input[name="' + name +'"]:checked').val();
         var resultLevel = $('input[name="' + name +'-level"]:checked').val();
+
+        if(name == 'csharp_new_line_before_open_brace' && resultValue == 'select'){
+            var boxValues = "";
+            var checkedValues = $('input[name="csharp_new_line_before_open_brace-select"]:checked');
+            console.log(checkedValues);
+            if(checkedValues.length == 0){
+                resultValue = 'all';
+            }
+            else{
+                $.each(checkedValues, function(index,value){
+                    boxValues += checkedValues.eq(index).val()+',';
+                });
+                resultValue = boxValues.slice(0, boxValues.length-1);
+            }
+        }
 
         var resultLine = name + '=' + resultValue;
         if(resultLevel != undefined){
