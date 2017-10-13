@@ -8,12 +8,12 @@
         var defaultValues = firstRow.find('td').eq(2).text().split(':');
 
         var values=[];
-        var secondRows = headers.eq(index).nextUntil('h3','table').eq(1).find('tbody').find('tr');
-        $.each(secondRows, function(index, value){
-            values.push(secondRows.eq(index).find('td').first().text());
+        var possibleValues = headers.eq(index).nextUntil('h3','table').eq(1).find('tbody').find('tr');
+        $.each(possibleValues, function(index, value){
+            values.push(possibleValues.eq(index).find('td').first().text());
         })
 
-        headers.eq(index).after(getText(name, values, defaultValues[1]!=undefined));
+        headers.eq(index).after(getText(name, values, defaultValues[1] != undefined));
         setDefaults(name, defaultValues);
     })
 
@@ -34,6 +34,16 @@
         var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
         saveAs(blob, "config.txt");
     });
+
+    $('#applyFile').click(function(){
+        var file = $('#fileInput')[0].files[0];
+        var fr = new FileReader();
+        fr.onload = function(event) {
+            parseText(event.target.result);
+        };
+        fr.readAsText(file);
+    });
+
 });
 
 function getText(name, values, hasLevel){
@@ -77,12 +87,18 @@ function setDefaults(name, values){
 
 function createButton(){
     var button=`
-    <div id="resultButton">
-        Get Results
+    <div id="resultOptions">
+        <div id="resultButton">
+            Get Results
+        </div>
+        <div>
+            <input id="fileInput" type="file" class="x-hidden-focus"/>
+            <button id="applyFile">Apply</button>
+        </div>
     </div>
     `
     $('body').first().prepend(button);
-    $('#resultButton').css({
+    $('#resultOptions').css({
         'position':'fixed', 
         'top': '0', 
         'right':'0', 
@@ -90,7 +106,7 @@ function createButton(){
         'font-size':'40px',
         'background-color':'white',
         'padding':'5px',
-        'z-index':'2'
+        'z-index':'1'
     });
 }
 
@@ -108,44 +124,62 @@ function getResults(){
     var previousHeader = "";
     var headers = $('h1').eq(1).nextUntil($('h1').eq(5),'h3');
     $.each(headers, function(index, value){
-        var mainHeader = headers.eq(index).prevAll('h1').first().text();
-        if(previousMainHeader != mainHeader){
-            result += '\r\n//' + mainHeader;
-            previousMainHeader = mainHeader;
-        }
-
-        var header = headers.eq(index).prevAll('h2').first().text();
-        if(previousHeader != header){
-            result += '\r\n//' + header + '\r\n';
-            previousHeader = header;
-        }
-
         var name = headers.eq(index).nextUntil('h3','table').first().find('tbody').first('tr').first('td').find('code').text();
-          
+        var defaultSettings = headers.eq(index).nextUntil('h3','table').first().find('tbody').first('tr').find('td').eq(2).text().split(':');
         var resultValue = $('input[name="' + name +'"]:checked').val();
         var resultLevel = $('input[name="' + name +'-level"]:checked').val();
 
-        if(name == 'csharp_new_line_before_open_brace' && resultValue == 'select'){
-            var boxValues = "";
-            var checkedValues = $('input[name="csharp_new_line_before_open_brace-select"]:checked');
-            console.log(checkedValues);
-            if(checkedValues.length == 0){
-                resultValue = 'all';
-            }
-            else{
-                $.each(checkedValues, function(index,value){
-                    boxValues += checkedValues.eq(index).val()+',';
-                });
-                resultValue = boxValues.slice(0, boxValues.length-1);
-            }
-        }
+        if(defaultSettings[0] != resultValue || defaultSettings[1] != resultLevel){
 
-        var resultLine = name + '=' + resultValue;
-        if(resultLevel != undefined){
-            resultLine += ':' + resultLevel;
+            var mainHeader = headers.eq(index).prevAll('h1').first().text();
+            if(previousMainHeader != mainHeader){
+                result += '\r\n//' + mainHeader;
+                previousMainHeader = mainHeader;
+            }
+
+            var header = headers.eq(index).prevAll('h2').first().text();
+            if(previousHeader != header){
+                result += '\r\n//' + header + '\r\n';
+                previousHeader = header;
+            }
+
+            if(name == 'csharp_new_line_before_open_brace' && resultValue == 'select'){
+                var boxValues = "";
+                var checkedValues = $('input[name="csharp_new_line_before_open_brace-select"]:checked');
+                if(checkedValues.length == 0){
+                    resultValue = 'all';
+                }
+                else{
+                    $.each(checkedValues, function(index,value){
+                        boxValues += checkedValues.eq(index).val()+',';
+                    });
+                    resultValue = boxValues.slice(0, boxValues.length-1);
+                }
+            }
+
+            var resultLine = name + '=' + resultValue;
+            if(resultLevel != undefined){
+                resultLine += ':' + resultLevel;
+            }
+            result += resultLine + '\r\n';
         }
-        result += resultLine + '\r\n';
     });
 
     return result;
+}
+
+function parseText(text){
+    var lines = text.split('\n');
+    $.each(lines, function(index, value){
+        value = value.trim();
+        if(!value.startsWith('//') && value.length !=0){
+            var parts = value.split("=");
+            var values = parts[1].split(":");
+            $('input[name="' + parts[0] +'"][value="' + values[0] + '"]').prop('checked', true);
+
+            if(values[1] != undefined){
+                $('input[name="' + parts[0] +'-level"][value="' + values[1] + '"]').prop('checked', true);
+            }
+        }
+    });
 }
