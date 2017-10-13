@@ -30,7 +30,16 @@
         saveAs(blob, "config.txt");
     });
 
-    $('#applyFile').click(function(){
+    $('#fileInput').change(function(){
+        if(this.value.length != 0){
+            $('#applyFileButton').removeAttr("disabled");
+        }
+        else{
+            $('#applyFileButton').attr("disabled", "disabled");
+        };    
+    });
+
+    $('#applyFileButton').click(function(){
         var file = $('#fileInput')[0].files[0];
         var fr = new FileReader();
         fr.onload = function(event) {
@@ -100,25 +109,23 @@ function setDefaults(name, values){
 function createButton(){
     var button=`
     <div id="resultOptions">
-        <div id="resultButton">
-            Get Results
-        </div>
-        <div>
-            <input id="fileInput" type="file" class="x-hidden-focus"/>
-            <button id="applyFile">Apply</button>
-        </div>
+        <input type="file" id="fileInput"/>
+        <button id="applyFileButton" disabled>Apply</button><br>
+        <button id="resultButton" style="width:100%">Get Results</button><br>
     </div>
     `
     $('body').first().prepend(button);
     $('#resultOptions').css({
-        'position':'fixed', 
-        'top': '0', 
-        'right':'0', 
-        'border':'3px solid red',
-        'font-size':'40px',
-        'background-color':'white',
-        'padding':'5px',
-        'z-index':'1'
+            'border-width': '3px',
+            'background-color': '#B0C4DE',
+            'border-style': 'solid',
+            'border-color': '#0724B9',
+            'position': 'fixed',
+            'padding': '7px',
+            'top': '0',
+            'right': '0',
+            'max-width': '400px',
+            'z-index': '999'
     });
 }
 
