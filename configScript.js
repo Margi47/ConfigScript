@@ -10,7 +10,6 @@
             var row = rows.eq(index);       
             var name = getName(row);
             var defaultValues = getDefaults(row, defaultIndex);
-            console.log(defaultIndex);
             var possibleValues = getPossibleValues(defaultValues);
 
             row.find('td').eq(0).append(getOptionsText(name, possibleValues, defaultValues[1] != undefined));
@@ -178,7 +177,7 @@ function getResults(){
             var resultValue = $('input[name="' + name +'"]:checked').val();
             var resultLevel = $('input[name="' + name +'-level"]:checked').val();
 
-            //if(defaultSettings[0] != resultValue || defaultSettings[1] != resultLevel){
+            if(defaultSettings[0] != resultValue || defaultSettings[1] != resultLevel){
                 var mainHeader = header.prevAll('h2').eq(0).text();
                 if(previousMainHeader != mainHeader){
                     result += '\r\n//' + mainHeader;
@@ -215,7 +214,7 @@ function getResults(){
                     resultLine += ':' + resultLevel;
                 }
                 result += resultLine + '\r\n';
-            //}
+            }
         });
     });
     return result;
@@ -228,11 +227,20 @@ function parseText(text){
         if(!value.startsWith('//') && value.length !=0){
             var parts = value.split("=");
             var values = parts[1].split(":");
+            if(parts[0] == 'csharp_new_line_before_open_brace' && values[0] != 'none' && values[0] != 'all'){
+                $('input[name="' + parts[0] +'"][value="select"]').click();
+                var checkedValues = values[0].split(',');
+                
+                $.each(checkedValues, function(index, value){
+                    $('input[name="' + parts[0] +'-select"][value="' + checkedValues[index] + '"]').prop('checked', true);
+                })               
+            }
             $('input[name="' + parts[0] +'"][value="' + values[0] + '"]').prop('checked', true);
 
             if(values[1] != undefined){
                 $('input[name="' + parts[0] +'-level"][value="' + values[1] + '"]').prop('checked', true);
             }
+            
         }
     });
 }
