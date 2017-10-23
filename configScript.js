@@ -10,6 +10,7 @@
             var row = rows.eq(index);       
             var name = getName(row);
             var defaultValues = getDefaults(row, defaultIndex);
+            console.log(defaultIndex);
             var possibleValues = getPossibleValues(defaultValues);
 
             row.find('td').eq(0).append(getOptionsText(name, possibleValues, defaultValues[1] != undefined));
@@ -64,7 +65,7 @@ function getIndex(header){
     var i;
     var tableHeaders = header.nextUntil('h4','table').eq(0).find('thead').find('tr').eq(0).find('th');
     $.each(tableHeaders, function(index, value){
-        if(tableHeaders.eq(index).text() == 'Visual Studio Default')
+        if(tableHeaders.eq(index).text().startsWith('Visual Studio'))
             i = index;    
     });
     return i;
@@ -162,51 +163,61 @@ function createButton(){
 function getResults(){
     var result = "";
     var previousMainHeader = "";
+    var previousMiddleHeader = "";
     var previousHeader = "";
-    var headers = $('h1').eq(1).nextUntil($('h1').eq(5),'h3');
+    var headers = $('h2').eq(0).nextUntil($('h2').eq(2),'h4');
     $.each(headers, function(index, value){
         var header = headers.eq(index);
-        var name = getName(header);
-        var defaultSettings = getDefaults(header);
-        var resultValue = $('input[name="' + name +'"]:checked').val();
-        var resultLevel = $('input[name="' + name +'-level"]:checked').val();
+        var defaultIndex = getIndex(header);
+        var rows = header.nextUntil('h4','table').eq(0).find('tbody').find('tr');
+        $.each(rows, function(index, value){
+            var row = rows.eq(index);       
+            var nameData = getName(row);
+            var name = nameData.slice(0, nameData.indexOf("Value:")).trim();
+            var defaultSettings = getDefaults(row, defaultIndex);
+            var resultValue = $('input[name="' + name +'"]:checked').val();
+            var resultLevel = $('input[name="' + name +'-level"]:checked').val();
 
-        if(defaultSettings[0] != resultValue || defaultSettings[1] != resultLevel){
-
-            var mainHeader = headers.eq(index).prevAll('h1').first().text();
-            if(previousMainHeader != mainHeader){
-                result += '\r\n//' + mainHeader;
-                previousMainHeader = mainHeader;
-            }
-
-            var header = headers.eq(index).prevAll('h2').first().text();
-            if(previousHeader != header){
-                result += '\r\n//' + header + '\r\n';
-                previousHeader = header;
-            }
-
-            if(name == 'csharp_new_line_before_open_brace' && resultValue == 'select'){
-                var boxValues = "";
-                var checkedValues = $('input[name="csharp_new_line_before_open_brace-select"]:checked');
-                if(checkedValues.length == 0){
-                    resultValue = 'all';
+            //if(defaultSettings[0] != resultValue || defaultSettings[1] != resultLevel){
+                var mainHeader = header.prevAll('h2').eq(0).text();
+                if(previousMainHeader != mainHeader){
+                    result += '\r\n//' + mainHeader;
+                    previousMainHeader = mainHeader;
                 }
-                else{
-                    $.each(checkedValues, function(index,value){
-                        boxValues += checkedValues.eq(index).val()+',';
-                    });
-                    resultValue = boxValues.slice(0, boxValues.length-1);
-                }
-            }
 
-            var resultLine = name + '=' + resultValue;
-            if(resultLevel != undefined){
-                resultLine += ':' + resultLevel;
-            }
-            result += resultLine + '\r\n';
-        }
+                var middleHeader = header.prevAll('h3').eq(0).text();
+                if(previousMiddleHeader != middleHeader){
+                    result += '\r\n//' + middleHeader;
+                    previousMiddleHeader = middleHeader;
+                }
+                
+                if(header.text() != previousHeader){
+                    result += '\r\n//' + header.text() + '\r\n';
+                    previousHeader = header.text();
+                }
+
+                if(name == 'csharp_new_line_before_open_brace' && resultValue == 'select'){
+                    var boxValues = "";
+                    var checkedValues = $('input[name="csharp_new_line_before_open_brace-select"]:checked');
+                    if(checkedValues.length == 0){
+                        resultValue = 'none';
+                    }
+                    else{
+                        $.each(checkedValues, function(index,value){
+                            boxValues += checkedValues.eq(index).val()+',';
+                        });
+                        resultValue = boxValues.slice(0, boxValues.length-1);
+                    }
+                }
+
+                var resultLine = name + '=' + resultValue;
+                if(resultLevel != undefined){
+                    resultLine += ':' + resultLevel;
+                }
+                result += resultLine + '\r\n';
+            //}
+        });
     });
-
     return result;
 }
 
