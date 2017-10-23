@@ -1,23 +1,29 @@
 ﻿$(document).ready(function(){  
     $('head').append('<script src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"></script>');  
 
-    var headers = $('h1').eq(1).nextUntil($('h1').eq(5),'h3');
+    var headers = $('h2').eq(0).nextUntil($('h2').eq(2),'h4');   
     $.each(headers, function(index, value){
         var header = headers.eq(index);
-        var name = getName(header);
-        var defaultValues = getDefaults(header);
-        var possibleValues = getPossibleValues(header);
+        var defaultIndex = getIndex(header);
+        var rows = header.nextUntil('h4','table').eq(0).find('tbody').find('tr');
+        $.each(rows, function(index, value){
+            var row = rows.eq(index);       
+            var name = getName(row);
+            var defaultValues = getDefaults(row, defaultIndex);
+            var possibleValues = getPossibleValues(defaultValues);
 
-        header.after(getText(name, possibleValues, defaultValues[1] != undefined));
-        setDefaults(name, defaultValues);
+            row.find('td').eq(0).append(getOptionsText(name, possibleValues, defaultValues[1] != undefined));
+            setDefaults(name, defaultValues);
+        })
     })
 
     createButton();
 
     $('input[name="csharp_new_line_before_open_brace"]').change(function(){
         if ($(this).val() == 'select') {
-            var boxes = addCheckboxOptions($(this).parent().next().next().find('tbody').find('tr').first().find('td').first().text());
-            $(this).parent().append(boxes);
+            var boxes = getCheckboxOptions($(this).parents('table').next().next().find('tbody').find('tr').eq(0).find('td').eq(0).text());
+            
+            $(this).parents('div').eq(0).append(boxes);
         }
         else{
             $('#selectBoxes').remove();
@@ -50,52 +56,73 @@
 
 });
 
-function getName(header){
-    return header.nextUntil('h3','table').eq(0).find('tbody').first('tr').first('td').find('code').text();
+function getName(row){
+    return row.find('td').eq(0).text();
 }
 
-function getDefaults(header){
-    return header.nextUntil('h3','table').eq(0).find('tbody').first('tr').find('td').eq(2).text().split(':');
-}
-
-function getPossibleValues(header){
-    var values=[];
-    var possibleValues = header.nextUntil('h3','table').eq(1).find('tbody').find('tr');
-    $.each(possibleValues, function(index, value){
-        values.push(possibleValues.eq(index).find('td').first().text());
+function getIndex(header){
+    var i;
+    var tableHeaders = header.nextUntil('h4','table').eq(0).find('thead').find('tr').eq(0).find('th');
+    $.each(tableHeaders, function(index, value){
+        if(tableHeaders.eq(index).text() == 'Visual Studio Default')
+            i = index;    
     });
+    return i;
+}
+
+function getDefaults(row, index){
+    return row.find('td').eq(index).text().split(':');
+}
+
+function getPossibleValues(defaultVal){
+    var values=[];
+    switch(defaultVal[0]){
+        case 'true':
+        case 'false':
+            values.push('true', 'false');
+            break;
+        case 'all':
+            values.push('none', 'all', 'select');
+            break;
+        case 'no_change':
+            values.push('flush_left', 'one_less_than_current', 'no_change');
+            break;
+    }
     return values;
 }
 
-function getText(name, values, hasLevel){
+function getOptionsText(name, values, hasLevel){
     var options ="";
     $.each(values, function(index, value){
-        if(name == "csharp_new_line_before_open_brace" && index == 0){
-            options += '<input type="radio" name="' + name + '" value="select"/>select';
-        }
-        else{
-            options += '<input type="radio" name="' + name + '" value="' + value.toLowerCase() + '"/>' + value;
-        }
+        options += '<label><input type="radio" name="' + name + '" value="' + value + '"/>' + value + '</label>&nbsp;';
     });
 
-    if(name == "csharp_space_between_parentheses"){
-        options += '<input type="radio" name="' + name + '" value="false"/>False';
-    }
-
-    var text ='<label>Value</label><div>' + options + '</div>';
-    var levelText =`
-        <label>Severity</label>
-        <div>
-            <input type="radio" name="` + name + `-level" value="none"/>None
-            <input type="radio" name="` + name + `-level" value="suggestion"/>Suggestion
-            <input type="radio" name="` + name + `-level" value="warning"/>Warning
-            <input type="radio" name="` + name + `-level" value="error"/>Error
+    var text =`
+        <div class="editor-config-ex-value">
+            <label><strong>Value:</strong></label>&nbsp;` + options + `
         </div>`;
+
+    var levelText =`<br>
+    <div class="editor-config-ex-level">
+        <label><strong>Severity:</strong></label>&nbsp;
+        <label><input type="radio" name="` + name + `-level" value="none"/>None</label>&nbsp;
+        <label><input type="radio" name="` + name + `-level" value="suggestion"/>Suggestion</label>&nbsp;
+        <label><input type="radio" name="` + name + `-level" value="warning"/>Warning</label>&nbsp;
+        <label><input type="radio" name="` + name + `-level" value="error"/>Error</label>&nbsp;
+    </div>`;
 
     if(hasLevel){
         text += levelText;
     }
-    return text;
+    return '<div class="editor-config-ex">' + text + '</div>';
+}
+
+function getCheckboxOptions(values){
+    var text = "";
+    $.each(values.slice(0, values.indexOf(".")).split(', '), function(index, value) {
+        text += '<input type="checkbox" name="csharp_new_line_before_open_brace-select" value="'+ value +'">'+ value + '<br>';
+    });
+    return '<div id="selectBoxes"><br>' + text + '</div>';    
 }
 
 function setDefaults(name, values){
@@ -108,17 +135,18 @@ function setDefaults(name, values){
 
 function createButton(){
     var button=`
-    <div id="resultOptions">
+    <div class="editor-config-ex-results">
         <input type="file" id="fileInput"/>
         <button id="applyFileButton" disabled>Apply</button><br>
         <button id="resultButton" style="width:100%">Get Results</button><br>
     </div>
     `
     $('body').first().prepend(button);
-    $('#resultOptions').css({
+    $('.editor-config-ex-results').css({
             'border-width': '3px',
             'background-color': '#B0C4DE',
             'border-style': 'solid',
+            'border-radius': '4px',
             'border-color': '#0724B9',
             'position': 'fixed',
             'padding': '7px',
@@ -129,13 +157,7 @@ function createButton(){
     });
 }
 
-function addCheckboxOptions(values){
-    var text = "";
-    $.each(values.slice(0, values.indexOf(".")).split(', '), function(index, value) {
-        text += '<input type="checkbox" name="csharp_new_line_before_open_brace-select" value="'+ value +'">'+ value + '<br>';
-    });
-    return '<div id="selectBoxes"><br>' + text + '</div>';    
-}
+
 
 function getResults(){
     var result = "";
