@@ -1,6 +1,6 @@
 ﻿$(document).ready(function(){  
-    $('head').append('<script src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"></script>');  
-
+    $('head').append('<script src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"></script> <link rel="stylesheet" href="">');  
+    
     var headers = $('h2').eq(0).nextUntil($('h2').eq(2),'h4');   
     $.each(headers, function(index, value){
         var header = headers.eq(index);
@@ -138,23 +138,10 @@ function createButton(){
     <div class="editor-config-ex-results">
         <input type="file" id="fileInput"/>
         <button id="applyFileButton" disabled>Apply</button><br>
-        <button id="resultButton" style="width:100%">Get Results</button><br>
+        <button id="resultButton">Get Results</button><br>
     </div>
     `
     $('body').first().prepend(button);
-    $('.editor-config-ex-results').css({
-            'border-width': '3px',
-            'background-color': '#B0C4DE',
-            'border-style': 'solid',
-            'border-radius': '4px',
-            'border-color': '#0724B9',
-            'position': 'fixed',
-            'padding': '7px',
-            'top': '0',
-            'right': '0',
-            'max-width': '400px',
-            'z-index': '999'
-    });
 }
 
 
@@ -230,9 +217,8 @@ function parseText(text){
             if(parts[0] == 'csharp_new_line_before_open_brace' && values[0] != 'none' && values[0] != 'all'){
                 $('input[name="' + parts[0] +'"][value="select"]').click();
                 var checkedValues = values[0].split(',');
-                
                 $.each(checkedValues, function(index, value){
-                    $('input[name="' + parts[0] +'-select"][value="' + checkedValues[index] + '"]').prop('checked', true);
+                    $('input[name="' + parts[0] +'-select"][value="' + checkedValues[0] + '"]').prop('checked', true);
                 })               
             }
             $('input[name="' + parts[0] +'"][value="' + values[0] + '"]').prop('checked', true);
