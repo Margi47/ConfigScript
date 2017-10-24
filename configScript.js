@@ -12,7 +12,7 @@
             var defaultValues = getDefaults(row, defaultIndex);
             var possibleValues = getPossibleValues(defaultValues);
 
-            row.find('td').eq(0).append(getOptionsText(name, possibleValues, defaultValues[1] != undefined));
+            row.find('td').eq(0).append(getOptions(name, possibleValues, defaultValues[1] != undefined));
             setDefaults(name, defaultValues);
         })
     })
@@ -53,7 +53,6 @@
         };
         fr.readAsText(file);
     });
-
 });
 
 function getName(row){
@@ -91,7 +90,7 @@ function getPossibleValues(defaultVal){
     return values;
 }
 
-function getOptionsText(name, values, hasLevel){
+function getOptions(name, values, hasLevel){
     var options ="";
     $.each(values, function(index, value){
         options += '<label><input type="radio" name="' + name + '" value="' + value + '"/>' + value + '</label>&nbsp;';
@@ -102,7 +101,7 @@ function getOptionsText(name, values, hasLevel){
             <label>Value:</label>&nbsp;` + options + `
         </div>`;
 
-    var levelText =`<br>
+    var levelText =`
     <div class="editor-config-ex-value">
         <label>Severity:</label>&nbsp;
         <label><input type="radio" name="` + name + `-level" value="none"/>none</label>&nbsp;
@@ -141,10 +140,8 @@ function createButton(){
         <button id="resultButton">Get Results</button><br>
     </div>
     `
-    $('body').first().prepend(button);
+    $('body').prepend(button);
 }
-
-
 
 function getResults(){
     var result = "";
@@ -184,7 +181,7 @@ function getResults(){
 
                 if(name == 'csharp_new_line_before_open_brace' && resultValue == 'select'){
                     var boxValues = "";
-                    var checkedValues = $('input[name="csharp_new_line_before_open_brace-select"]:checked');
+                    var checkedValues = $('input[name="csharp_new_line_before_open_brace-select"]:checked');                   
                     if(checkedValues.length == 0){
                         resultValue = 'none';
                     }
@@ -225,8 +222,7 @@ function parseText(text){
 
             if(values[1] != undefined){
                 $('input[name="' + parts[0] +'-level"][value="' + values[1] + '"]').prop('checked', true);
-            }
-            
+            }           
         }
     });
 }
