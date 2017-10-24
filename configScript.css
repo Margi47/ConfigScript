@@ -11,6 +11,21 @@
     max-width: 400px;
     z-index: 999;
 }
+
+.editor-config-ex-value{
+    width: max-content;
+    padding: .5rem 0rem;
+}
+
+.editor-config-ex-value input{
+    margin-right: 0.3rem;
+}
+
+.editor-config-ex label{
+    text-transform: none;
+    font-size: .800rem;
+} 
+
 #resultButton {
     width:100%;
 }

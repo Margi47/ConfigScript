@@ -1,5 +1,5 @@
 ﻿$(document).ready(function(){  
-    $('head').append('<script src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"></script> <link rel="stylesheet" href="">');  
+    $('head').append('<script src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"></script> <link rel="stylesheet" href="https://rawgit.com/Margi47/ConfigScript/master/configScript.css">');  
     
     var headers = $('h2').eq(0).nextUntil($('h2').eq(2),'h4');   
     $.each(headers, function(index, value){
@@ -99,16 +99,16 @@ function getOptionsText(name, values, hasLevel){
 
     var text =`
         <div class="editor-config-ex-value">
-            <label><strong>Value:</strong></label>&nbsp;` + options + `
+            <label>Value:</label>&nbsp;` + options + `
         </div>`;
 
     var levelText =`<br>
-    <div class="editor-config-ex-level">
-        <label><strong>Severity:</strong></label>&nbsp;
-        <label><input type="radio" name="` + name + `-level" value="none"/>None</label>&nbsp;
-        <label><input type="radio" name="` + name + `-level" value="suggestion"/>Suggestion</label>&nbsp;
-        <label><input type="radio" name="` + name + `-level" value="warning"/>Warning</label>&nbsp;
-        <label><input type="radio" name="` + name + `-level" value="error"/>Error</label>&nbsp;
+    <div class="editor-config-ex-value">
+        <label>Severity:</label>&nbsp;
+        <label><input type="radio" name="` + name + `-level" value="none"/>none</label>&nbsp;
+        <label><input type="radio" name="` + name + `-level" value="suggestion"/>suggestion</label>&nbsp;
+        <label><input type="radio" name="` + name + `-level" value="warning"/>warning</label>&nbsp;
+        <label><input type="radio" name="` + name + `-level" value="error"/>error</label>&nbsp;
     </div>`;
 
     if(hasLevel){
