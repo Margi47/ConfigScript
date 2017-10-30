@@ -11,32 +11,40 @@
     }
     
     function addRadioboxesForOptions(){
-        var headers = $('h2').eq(0).nextUntil($('h2').eq(2),'h4');   
+        var headers = getSectionHeaders();   
         $.each(headers, function(index, value){
             var header = headers.eq(index);
-            var defaultIndex = getIndex(header);
-            var rows = header.nextUntil('h4','table').eq(0).find('tbody tr');
+            var defaultIndex = getDefaultColumnIndex(header);
+            var rows = getSectionTableRows(header);
             $.each(rows, function(index, value){              
                 var row = rows.eq(index);       
-                var name = getName(row);
-                var defaultValues = getDefaults(row, defaultIndex);
-                var possibleValues = getPossibleValues(defaultValues);
+                var name = getConfigOptionName(row);
+                var defaultValues = getOptionDefaultsValues(row, defaultIndex);
+                var possibleValues = getOptionPossibleValues(defaultValues);
             
-                row.find('td').eq(0).append(getOptions(name, possibleValues, defaultValues[1] != undefined));
-                setDefaults(name, defaultValues);
+                row.find('td:first').append(getRadioButtonsForOptions(name, possibleValues, defaultValues[1] != undefined));
+                setDefaultsToRadioBoxes(name, defaultValues);
             })
         })
         
         addListenerForCheckboxes();
     }
     
-    function getName(row){
-        return row.find('td').eq(0).text();
+    function getSectionHeaders(){
+        return $('h2:first').nextUntil($('h2:eq(2)'),'h4');
     }
     
-    function getIndex(header){
+    function getSectionTableRows(header){
+        return header.nextUntil('h4','table:first').find('tbody tr');
+    }
+    
+    function getConfigOptionName(row){
+        return row.find('td:first').text();
+    }
+    
+    function getDefaultColumnIndex(header){
         var i;
-        var tableHeaders = header.nextUntil('h4','table').eq(0).find('thead').find('tr').eq(0).find('th');
+        var tableHeaders = header.nextUntil('h4','table:first').find('thead tr:first th');
         $.each(tableHeaders, function(index, value){
             if(tableHeaders.eq(index).text().startsWith('Visual Studio'))
                 i = index;    
@@ -44,11 +52,11 @@
         return i;
     }
     
-    function getDefaults(row, index){
+    function getOptionDefaultsValues(row, index){
         return row.find('td').eq(index).text().split(':');
     }
     
-    function getPossibleValues(defaultVal){
+    function getOptionPossibleValues(defaultVal){
         var values=[];
         switch(defaultVal[0]){
             case 'true':
@@ -65,7 +73,7 @@
         return values;
     }
     
-    function getOptions(name, values, hasLevel){
+    function getRadioButtonsForOptions(name, values, hasLevel){
         var options ="";
         $.each(values, function(index, value){
             options += '<label><input type="radio" name="' + name + '" value="' + value + '"/>' + value + '</label>&nbsp;';
@@ -92,12 +100,13 @@
 
         return '<div class="editor-config-ex">' + text + '</div>';
     }
-    
+      
+    //.next().next();
     function addListenerForCheckboxes(){
         $('input[name="csharp_new_line_before_open_brace"]').change(function(){
             if ($(this).val() == 'select') {
-                var boxes = getCheckboxOptions($(this).parents('table').next().next().find('tbody').find('tr').eq(0).find('td').eq(0).text());        
-                $(this).parents('div').eq(0).append(boxes);
+                var boxes = getCheckboxOptions($(this).parents('table').next().next().find('tbody tr:first td:first').text());        
+                $(this).parents('div:first').append(boxes);
             }
             else{
                 $('#selectBoxes').remove();
@@ -113,7 +122,7 @@
         return '<div id="selectBoxes"><br>' + text + '</div>';    
     }
       
-    function setDefaults(name, values){
+    function setDefaultsToRadioBoxes(name, values){
         $('input[name="' + name +'"][value="' + values[0] + '"]').prop('checked', true);
     
         if(values[1] != undefined){
@@ -135,7 +144,7 @@
     
     function addResultBoxListeners(){
         $('#resultButton').click(function(){
-            var text= getResults();
+            var text= getResultText();
             var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
             saveAs(blob, "config.txt");
         });
@@ -153,38 +162,38 @@
             var file = $('#fileInput')[0].files[0];
             var fr = new FileReader();
             fr.onload = function(event) {
-                parseText(event.target.result);
+                parseInputText(event.target.result);
             };
             fr.readAsText(file);
         });
     }
     
-    function getResults(){
+    function getResultText(){
         var result = "";
         var previousMainHeader = "";
         var previousMiddleHeader = "";
         var previousHeader = "";
-        var headers = $('h2').eq(0).nextUntil($('h2').eq(2),'h4');
+        var headers = getSectionHeaders();
         $.each(headers, function(index, value){
             var header = headers.eq(index);
-            var defaultIndex = getIndex(header);
-            var rows = header.nextUntil('h4','table').eq(0).find('tbody').find('tr');
+            var defaultIndex = getDefaultColumnIndex(header);
+            var rows = getSectionTableRows(header);
             $.each(rows, function(index, value){
                 var row = rows.eq(index);       
-                var nameData = getName(row);
+                var nameData = getConfigOptionName(row);
                 var name = nameData.slice(0, nameData.indexOf("Value:")).trim();
-                var defaultSettings = getDefaults(row, defaultIndex);
+                var defaultSettings = getOptionDefaultsValues(row, defaultIndex);
                 var resultValue = $('input[name="' + name +'"]:checked').val();
                 var resultLevel = $('input[name="' + name +'-level"]:checked').val();
             
                 if(defaultSettings[0] != resultValue || defaultSettings[1] != resultLevel){
-                    var mainHeader = header.prevAll('h2').eq(0).text();
+                    var mainHeader = header.prevAll('h2:first').text();
                     if(previousMainHeader != mainHeader){
                         result += '\r\n//' + mainHeader;
                         previousMainHeader = mainHeader;
                     }
                 
-                    var middleHeader = header.prevAll('h3').eq(0).text();
+                    var middleHeader = header.prevAll('h3:first').text();
                     if(previousMiddleHeader != middleHeader){
                         result += '\r\n//' + middleHeader;
                         previousMiddleHeader = middleHeader;
@@ -220,7 +229,7 @@
         return result;
     }
     
-    function parseText(text){
+    function parseInputText(text){
         var lines = text.split('\n');
         $.each(lines, function(index, value){
             var line = value.trim();
