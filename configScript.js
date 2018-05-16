@@ -6,7 +6,7 @@
     });
     
     function addExternalScripts(){
-        $('head').append(`<script src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.js"></script> 
+        $('head').append(`<script src="https://cdn.rawgit.com/eligrey/FileSaver.js/5ed507ef8aa53d8ecfea96d96bc7214cd2476fd2/FileSaver.min.js"></script> 
             <link rel="stylesheet" href="https://rawgit.com/Margi47/ConfigScript/master/configScript.css">`); 
     }
     
@@ -21,7 +21,7 @@
                 var name = getConfigOptionName(row);
                 var defaultValues = getOptionDefaultsValues(row, defaultIndex);
                 var possibleValues = getOptionPossibleValues(defaultValues);
-            
+                
                 row.find('td:first').append(getRadioButtonsForOptions(name, possibleValues, defaultValues[1] != undefined));
                 setDefaultsToRadioBoxes(name, defaultValues);
             })
@@ -31,11 +31,11 @@
     }
     
     function getSectionHeaders(){
-        return $('h2:first').nextUntil($('h2:eq(2)'),'h4');
+        return $('#main').children('h4');
     }
     
     function getSectionTableRows(header){
-        return header.nextUntil('h4','table:first').find('tbody tr');
+        return header.nextUntil('h4','.table-scroll-wrapper').eq(0).find('table tbody tr');
     }
     
     function getConfigOptionName(row){
@@ -44,9 +44,9 @@
     
     function getDefaultColumnIndex(header){
         var i;
-        var tableHeaders = header.nextUntil('h4','table:first').find('thead tr:first th');
+        var tableHeaders = header.nextUntil('h4','.table-scroll-wrapper').eq(0).find('table thead tr:first th');
         $.each(tableHeaders, function(index, value){
-            if(tableHeaders.eq(index).text().startsWith('Visual Studio'))
+            if(tableHeaders.eq(index).text().startsWith('Visual Studio default'))
                 i = index;    
         });
         return i;
@@ -69,21 +69,54 @@
             case 'no_change':
                 values.push('flush_left', 'one_less_than_current', 'no_change');
                 break;
+            case 'for_non_interface_members':
+                values.push('always','for_non_interface_members','never');
+                break;
+            default :
+                values.push(defaultVal[0]);
+                break;
         }
         return values;
     }
     
     function getRadioButtonsForOptions(name, values, hasLevel){
-        var options ="";
-        $.each(values, function(index, value){
-            options += '<label><input type="radio" name="' + name + '" value="' + value + '"/>' + value + '</label>&nbsp;';
-        });
+        var text;
+        if(values.length > 1){
+            var options ="";
+            $.each(values, function(index, value){
+                options += '<label><input type="radio" name="' + name + '" value="' + value + '"/>' + value + '</label>&nbsp;';
+            });
     
-        var text =`
+            text =`
+                <div class="editor-config-ex-value">
+                    <label>Value:</label>&nbsp;` + options + `
+                </div>`;
+        }
+        else{
+            var rows;
+            if(name == 'csharp_preferred_modifier_order'){
+                rows = 2;
+            }
+            else{
+                rows = 5;
+            }
+            text = `
             <div class="editor-config-ex-value">
-                <label>Value:</label>&nbsp;` + options + `
-            </div>`;
+                <label>Value:</label>
+            </div>
+            <div>
+                <textarea name="` + name + `" cols="60" rows="` + rows + `" style="resize: none;">` + values[0] + `</textarea>
+            </div>
+            `
+        }
+        if(hasLevel){
+            text += getLevelText(name);
+        }
         
+        return '<div class="editor-config-ex">' + text + '</div>';
+    }
+
+    function getLevelText(name){
         var levelText =`
         <div class="editor-config-ex-value">
             <label>Severity:</label>&nbsp;
@@ -91,21 +124,14 @@
             <label><input type="radio" name="` + name + `-level" value="suggestion"/>suggestion</label>&nbsp;
             <label><input type="radio" name="` + name + `-level" value="warning"/>warning</label>&nbsp;
             <label><input type="radio" name="` + name + `-level" value="error"/>error</label>&nbsp;
-        </div>`;
-    
-        if(hasLevel){
-            text += levelText;
-        }
-        
-
-        return '<div class="editor-config-ex">' + text + '</div>';
+        </div>`
+        return levelText;
     }
       
-    //.next().next();
     function addListenerForCheckboxes(){
         $('input[name="csharp_new_line_before_open_brace"]').change(function(){
             if ($(this).val() == 'select') {
-                var boxes = getCheckboxOptions($(this).parents('table').next().next().find('tbody tr:first td:first').text());        
+                var boxes = getCheckboxOptions($(this).parents('.table-scroll-wrapper').nextUntil('.codeHeader','.table-scroll-wrapper').find('table tbody tr:first td:first').text());        
                 $(this).parents('div:first').append(boxes);
             }
             else{
@@ -123,8 +149,11 @@
     }
       
     function setDefaultsToRadioBoxes(name, values){
-        $('input[name="' + name +'"][value="' + values[0] + '"]').prop('checked', true);
-    
+        
+        if(values[0].length > 1){
+            $('input[name="' + name +'"][value="' + values[0] + '"]').prop('checked', true);
+        }
+
         if(values[1] != undefined){
             $('input[name="' + name +'-level"][value="' + values[1] + '"]').prop('checked', true);
         }
@@ -145,6 +174,7 @@
     function addResultBoxListeners(){
         $('#resultButton').click(function(){
             var text= getResultText();
+            console.log(text);
             var blob = new Blob([text], {type: "text/plain;charset=utf-8"});
             saveAs(blob, "config.txt");
         });
@@ -183,10 +213,25 @@
                 var nameData = getConfigOptionName(row);
                 var name = nameData.slice(0, nameData.indexOf("Value:")).trim();
                 var defaultSettings = getOptionDefaultsValues(row, defaultIndex);
-                var resultValue = $('input[name="' + name +'"]:checked').val();
+
                 var resultLevel = $('input[name="' + name +'-level"]:checked').val();
-            
-                if(defaultSettings[0] != resultValue || defaultSettings[1] != resultLevel){
+                var resultValue;
+                var newValue = false;
+                if(name == 'csharp_preferred_modifier_order' || name == 'visual_basic_preferred_modifier_order'){
+                    resultValue = $('textarea[name="' + name +'"]').val();
+                    if(defaultSettings[0].replace(/ /g,'') != resultValue.replace(/ /g,'') 
+                        || defaultSettings[1] != resultLevel){
+                        newValue = true;
+                    }
+                }
+                else{
+                    resultValue = $('input[name="' + name +'"]:checked').val();
+                    if(defaultSettings[0] != resultValue || defaultSettings[1] != resultLevel){
+                        newValue = true;
+                    }
+                }
+                
+                if(newValue){
                     var mainHeader = header.prevAll('h2:first').text();
                     if(previousMainHeader != mainHeader){
                         result += '\r\n//' + mainHeader;
