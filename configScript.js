@@ -189,6 +189,7 @@
         });
     
         $('#applyFileButton').click(function(){
+            $('#applyFileButton').attr("disabled", "disabled");
             var file = $('#fileInput')[0].files[0];
             var fr = new FileReader();
             fr.onload = function(event) {
@@ -282,15 +283,21 @@
                 var parts = line.split("=");
                 var name = parts[0];
                 var values = parts[1].split(":");
-                if(name == 'csharp_new_line_before_open_brace' && values[0] != 'none' && values[0] != 'all'){
-                    $('input[name="' + name +'"][value="select"]').click();
-                    var checkedValues = values[0].split(',');
-                    $.each(checkedValues, function(index, value){
-                        $('input[name="' + name +'-select"][value="' + checkedValues[index] + '"]').prop('checked', true);
-                    })               
+
+                if(name == 'csharp_preferred_modifier_order' || name == 'visual_basic_preferred_modifier_order'){
+                    $('textarea[name="' + name +'"]').val(values[0]);
                 }
-                $('input[name="' + name +'"][value="' + values[0] + '"]').prop('checked', true);
-            
+                else if(name == 'csharp_new_line_before_open_brace' && values[0] != 'none' && values[0] != 'all'){
+                        $('input[name="' + name +'"][value="select"]').click();
+                        var checkedValues = values[0].split(',');
+                        $.each(checkedValues, function(index, value){
+                            $('input[name="' + name +'-select"][value="' + checkedValues[index] + '"]').prop('checked', true);
+                        })               
+                }
+                else{
+                    $('input[name="' + name +'"][value="' + values[0] + '"]').prop('checked', true);
+                }
+                
                 if(values[1] != undefined){
                     $('input[name="' + name +'-level"][value="' + values[1] + '"]').prop('checked', true);
                 }           
