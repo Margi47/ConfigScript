@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name EditorConfig Script
 // @description Helps to define .NET coding convention settings for EditorConfig file.
-// @version 1
+// @version 1.0.1
 // @license MIT
 // @namespace https://github.com/Margi47/EditorConfigScript
 // @match https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
