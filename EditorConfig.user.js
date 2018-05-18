@@ -1,4 +1,13 @@
-﻿(function() {
+// ==UserScript==
+// @name EditorConfig Script
+// @description Helps to define .NET coding convention settings for EditorConfig file.
+// @version 1
+// @namespace https://github.com/Margi47/EditorConfigScript
+// @match https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
+// @run-at document-end
+// ==/UserScript==
+
+(function() {
     $(document).ready(function(){  
         addExternalScripts();       
         addRadioboxesForOptions();   
