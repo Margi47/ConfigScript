@@ -5,3 +5,5 @@ In Visual Studio 2017, editorConfig files allow you to enable or disable individ
 This script helps to create new EditorConfig file or change existing one. Using the script you can configure settings right at the web page, where they are described, and then download fully formatted editorConfig file to your computer.
 
 There are three supported .NET coding convention categories: Language conventions, Formatting conventions, Naming convensions. The script works with first two.
+
+Can be installed from OpenUserJs https://openuserjs.org/scripts/Margi/EditorConfig_Script
